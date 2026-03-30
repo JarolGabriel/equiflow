@@ -15,7 +15,7 @@ venv/
 
 # Docker
 .dockerignore
-# (Opcional) Si tu volumen de base de datos está en una carpeta local:
+
 postgres_data/
 
 # OS

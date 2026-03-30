@@ -44,6 +44,10 @@ class PortfolioSerializer(serializers.ModelSerializer):
 
     assets = PortfolioAssetSerializer(many=True, read_only=True)
 
+    items = serializers.ListField(
+        child=serializers.DictField(), write_only=True, required=False
+    )
+
     class Meta:
         model = Portfolio
         fields = [
@@ -54,6 +58,21 @@ class PortfolioSerializer(serializers.ModelSerializer):
             "currency",
             "is_public",
             "assets",
+            "items",
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
+
+    def create(self, validated_data):
+
+        items_data = validated_data.pop("items", [])
+        portfolio = Portfolio.objects.create(**validated_data)
+
+        for item in items_data:
+            PortfolioAsset.objects.create(
+                portfolio=portfolio,
+                asset_id=item["asset_id"],
+                quantity=item["quantity"],
+                average_purchase_price=item["price"],
+            )
+        return portfolio
