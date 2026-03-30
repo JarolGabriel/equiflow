@@ -1,0 +1,23 @@
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+staticfiles/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Docker
+.dockerignore
+# (Opcional) Si tu volumen de base de datos está en una carpeta local:
+postgres_data/
+
+# OS
+.DS_Store
+Thumbs.db
