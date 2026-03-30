@@ -1,4 +1,5 @@
-from rest_framework import permissions, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, viewsets
 from rest_framework.permissions import AllowAny
 
 from .models import Asset, Portfolio
@@ -14,6 +15,18 @@ class AssetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
     permission_classes = [AllowAny]
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+
+    filterset_fields = ["asset_type", "exchange"]
+
+    search_fields = ["symbol", "name"]
+
+    ordering_fields = ["symbol", "name", "created_at"]
 
 
 class PortfolioViewSet(viewsets.ModelViewSet):
