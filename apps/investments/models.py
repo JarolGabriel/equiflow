@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
@@ -39,6 +40,16 @@ class Portfolio(models.Model):
     def __str__(self):
         return f"{self.name} ({self.user.email})"
 
+    @property
+    def total_balance(self):
+
+        return sum(item.current_value for item in self.assets.all())
+
+    @property
+    def total_profit_loss(self):
+
+        return sum(item.profit_loss for item in self.assets.all())
+
 
 class PortfolioAsset(models.Model):
     """
@@ -59,3 +70,21 @@ class PortfolioAsset(models.Model):
 
     def __str__(self):
         return f"{self.quantity} of {self.asset.symbol} in {self.portfolio.name}"
+
+    @property
+    def current_value(self):
+        """
+        Calculates the total value of this asset position based on a market price.
+        Formula: quantity * current_market_price
+        """
+        # Por ahora, simulamos que el precio actual es un 10% más que el de compra
+        # Mañana esto vendrá de Redis
+        current_market_price = self.average_purchase_price * Decimal("1.10")
+        return self.quantity * current_market_price
+
+    @property
+    def profit_loss(self):
+        """
+        Calculates the net profit or loss for this position.
+        """
+        return self.current_value - (self.quantity * self.average_purchase_price)

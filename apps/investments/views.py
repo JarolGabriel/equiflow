@@ -43,7 +43,9 @@ class PortfolioViewSet(viewsets.ModelViewSet):
         Customizes the queryset to return only portfolios belonging to the current user.
         This is a critical security best practice.
         """
-        return Portfolio.objects.filter(user=self.request.user)
+        return Portfolio.objects.filter(user=self.request.user).prefetch_related(
+            "assets__asset"
+        )
 
     def perform_create(self, serializer):
         """

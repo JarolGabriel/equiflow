@@ -22,6 +22,9 @@ class PortfolioAssetSerializer(serializers.ModelSerializer):
 
     asset_details = AssetSerializer(source="asset", read_only=True)
 
+    current_balance = serializers.ReadOnlyField(source="current_value")
+    profit_loss = serializers.ReadOnlyField()
+
     class Meta:
         model = PortfolioAsset
         fields = [
@@ -30,8 +33,24 @@ class PortfolioAssetSerializer(serializers.ModelSerializer):
             "asset_details",
             "quantity",
             "average_purchase_price",
+            "current_balance",
+            "profit_loss",
             "last_updated",
         ]
+
+    def validate_quantity(self, value):
+
+        if value <= 0:
+            raise serializers.ValidationError("La cantidad debe ser mayor a cero.")
+        return value
+
+    def validate_average_purchase_price(self, value):
+
+        if value <= 0:
+            raise serializers.ValidationError(
+                "El precio de compra debe ser un valor positivo."
+            )
+        return value
 
 
 class PortfolioSerializer(serializers.ModelSerializer):
@@ -43,6 +62,9 @@ class PortfolioSerializer(serializers.ModelSerializer):
     user_email = serializers.ReadOnlyField(source="user.email")
 
     assets = PortfolioAssetSerializer(many=True, read_only=True)
+
+    total_balance = serializers.ReadOnlyField()
+    total_profit_loss = serializers.ReadOnlyField()
 
     items = serializers.ListField(
         child=serializers.DictField(), write_only=True, required=False
@@ -57,6 +79,8 @@ class PortfolioSerializer(serializers.ModelSerializer):
             "description",
             "currency",
             "is_public",
+            "total_balance",
+            "total_profit_loss",
             "assets",
             "items",
             "created_at",
