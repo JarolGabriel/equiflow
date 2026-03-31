@@ -6,3 +6,6 @@ Pillow==10.2.0
 djangorestframework-simplejwt==5.5.1
 requests
 django-filter
+redis
+celery
+django-celery-beat

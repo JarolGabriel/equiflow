@@ -1,8 +1,9 @@
 import uuid
-from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
+
+from .services import PriceService
 
 
 class Asset(models.Model):
@@ -77,10 +78,13 @@ class PortfolioAsset(models.Model):
         Calculates the total value of this asset position based on a market price.
         Formula: quantity * current_market_price
         """
-        # Por ahora, simulamos que el precio actual es un 10% más que el de compra
-        # Mañana esto vendrá de Redis
-        current_market_price = self.average_purchase_price * Decimal("1.10")
-        return self.quantity * current_market_price
+
+        market_price = PriceService.get_current_price(self.asset.symbol)
+
+        if market_price is None:
+            market_price = self.average_purchase_price
+
+        return self.quantity * market_price
 
     @property
     def profit_loss(self):
