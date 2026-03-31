@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "django_filters",
     # Internal Apps
+    "apps.market_data",
     "apps.users",
     "apps.investments",
 ]

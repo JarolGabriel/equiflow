@@ -25,3 +25,19 @@ class CoinGeckoService:
         except Exception as e:
             print(f"Error fetching top coins: {e}")
             return []
+
+    @staticmethod
+    def get_prices(coin_ids):
+        """
+        Fetches current prices for a specific list of coin IDs.
+        Example coin_ids: ['bitcoin', 'ethereum', 'binancecoin']
+        """
+        url = f"{CoinGeckoService.BASE_URL}/simple/price"
+        params = {"ids": ",".join(coin_ids), "vs_currencies": "usd"}
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Error fetching live prices: {e}")
+            return None
