@@ -1,4 +1,7 @@
+import logging
 import time
+
+logger = logging.getLogger(__name__)
 
 import requests
 from django.conf import settings
@@ -136,10 +139,10 @@ class ForexService:
                         "percent_change": 0.0,
                     }
                 else:
-                    print(
-                        f"⚠️ Alpha Vantage Error for {symbol}: {data.get('Note', 'Unknown error')}"
+                    logger.warning(
+                        f"Alpha Vantage Error for {symbol}: {data.get('Note', 'Unknown error')}"
                     )
             except Exception as e:
-                print(f"❌ Connection Error Alpha Vantage: {e}")
+                logger.error(f"Connection Error Alpha Vantage: {e}")
 
         return normalized

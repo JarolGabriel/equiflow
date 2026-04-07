@@ -1,4 +1,7 @@
+import logging
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -43,6 +46,8 @@ class AlertService:
                         },
                     },
                 )
-                print(f"Notificación enviada a {group_name}")
+                logger.info(
+                    f"Alert notification dispatched to group: {group_name} for asset: {alert.asset.symbol}"
+                )
 
         return alerts

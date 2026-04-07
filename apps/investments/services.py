@@ -1,4 +1,7 @@
+import logging
 from decimal import Decimal
+
+logger = logging.getLogger(__name__)
 
 import redis
 
@@ -26,6 +29,8 @@ class PriceService:
             if price:
                 return Decimal(price)
         except Exception as e:
-            print(f"Redis error: {e}")
+            logger.error(
+                "Failed to fetch price from Redis for symbol %s: %s", asset_symbol, e
+            )
 
         return None

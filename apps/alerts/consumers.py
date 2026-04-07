@@ -1,4 +1,7 @@
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 
@@ -23,7 +26,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.group_name, self.channel_name)
 
             await self.accept()
-            print(
+            logger.info(
                 f"WebSocket connected: User {self.user.id} joined group {self.group_name}"
             )
 
@@ -31,7 +34,7 @@ class AlertConsumer(AsyncWebsocketConsumer):
         # Leave the group when disconnecting
         if hasattr(self, "group_name"):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
-            print(f"WebSocket disconnected: User {self.user.id}")
+            logger.info(f"WebSocket disconnected: User {self.user.id}")
 
     # This method receives the message from the Channel Layer (sent by Celery/Service)
     async def send_alert_notification(self, event):
