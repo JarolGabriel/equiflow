@@ -9,3 +9,9 @@ django-filter
 redis
 celery
 django-celery-beat
+yfinance
+curl_cffi
+stripe
+daphne==4.1.0
+channels==4.1.0
+channels-redis==4.2.0
