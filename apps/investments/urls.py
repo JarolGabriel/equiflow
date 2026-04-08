@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     AssetViewSet,
+    ExportPortfolioPDFView,
     MarketSummaryAPIView,
     PortfolioAssetViewSet,
     PortfolioViewSet,
@@ -20,4 +21,9 @@ router.register(r"portfolio-assets", PortfolioAssetViewSet, basename="portfolio-
 urlpatterns = [
     path("", include(router.urls)),
     path("market-summary/", MarketSummaryAPIView.as_view(), name="market-summary"),
+    path(
+        "portfolios/<uuid:portfolio_id>/export-pdf/",
+        ExportPortfolioPDFView.as_view(),
+        name="portfolio-export-pdf",
+    ),
 ]

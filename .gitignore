@@ -5,6 +5,7 @@ db.sqlite3
 db.sqlite3-journal
 media
 staticfiles/
+historial_logs.txt
 
 # Python
 __pycache__/

@@ -1,9 +1,14 @@
+from datetime import datetime
+
+from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from apps.users.permissions import IsProUser
 
 from .models import Asset, Portfolio, PortfolioAsset, Transaction
 from .serializers import (
@@ -13,6 +18,7 @@ from .serializers import (
     PortfolioSerializer,
     TransactionSerializer,
 )
+from .services import PortfolioReportService
 
 
 class AssetViewSet(viewsets.ReadOnlyModelViewSet):
@@ -70,9 +76,24 @@ class PortfolioViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """
-        Automatically assigns the logged-in user as the owner of the new portfolio.
+        Check for portfolio limits based on user status before saving.
         """
-        serializer.save(user=self.request.user)
+        user = self.request.user
+
+        # 1. Lógica de Negocio: Usuarios gratuitos limitados a 3 portafolios
+        if not user.is_pro:
+            portfolio_count = Portfolio.objects.filter(user=user).count()
+            if portfolio_count >= 3:
+                from rest_framework.exceptions import PermissionDenied
+
+                raise PermissionDenied(
+                    {
+                        "error": "Limit reached",
+                        "message": "Free users can only create up to 3 portfolios. Upgrade to PRO for unlimited access.",
+                    }
+                )
+
+        serializer.save(user=user)
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -143,3 +164,33 @@ class PortfolioAssetViewSet(
     def get_queryset(self):
 
         return PortfolioAsset.objects.filter(portfolio__user=self.request.user)
+
+
+class ExportPortfolioPDFView(APIView):
+    """
+    API View to export a portfolio summary as a PDF file.
+    Only available for PRO users.
+    """
+
+    permission_classes = [IsAuthenticated, IsProUser]
+
+    def get(self, request, portfolio_id):
+        try:
+            # Ensure the user owns the portfolio they are trying to export
+            portfolio = Portfolio.objects.get(id=portfolio_id, user=request.user)
+        except Portfolio.DoesNotExist:
+            return Response({"error": "Portfolio not found."}, status=404)
+
+        # Generate the PDF buffer
+        pdf_buffer = PortfolioReportService.generate_pdf(portfolio)
+
+        filename = (
+            f"EquiFlow_Report_{portfolio.name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        )
+
+        return FileResponse(
+            pdf_buffer,
+            as_attachment=True,
+            filename=filename,
+            content_type="application/pdf",
+        )

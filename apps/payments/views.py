@@ -38,7 +38,7 @@ class CreatePaymentIntentView(APIView):
             StripePayment.objects.create(
                 user=request.user,
                 stripe_id=intent.id,
-                amount=amount / 100,  # Convert back to decimal for our DB
+                amount=amount / 100,
                 currency=currency,
                 status=StripePayment.PaymentStatus.PENDING,
             )
@@ -62,6 +62,7 @@ class StripeWebhookView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
+        print(f" Webhook recibido: {request.body}")
         payload = request.body
         sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
         endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
@@ -73,26 +74,21 @@ class StripeWebhookView(APIView):
         except stripe.error.SignatureVerificationError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # Manejar el evento de pago exitoso
         if event["type"] == "payment_intent.succeeded":
             intent = event["data"]["object"]
             stripe_id = intent["id"]
 
-            # Buscamos el pago en nuestra DB y lo completamos
             try:
                 payment = StripePayment.objects.get(stripe_id=stripe_id)
                 payment.status = StripePayment.PaymentStatus.COMPLETED
                 payment.save()
 
-                # ACTUALIZAMOS AL USUARIO A PRO
                 user = payment.user
                 user.is_pro = True
                 user.save()
 
-                print(
-                    f"💰 Payment Succeeded: {stripe_id} - User {user.email} is now PRO"
-                )
+                print(f"Payment Succeeded: {stripe_id} - User {user.email} is now PRO")
             except StripePayment.DoesNotExist:
-                print(f"⚠️ Payment {stripe_id} not found in DB")
+                print(f" Payment {stripe_id} not found in DB")
 
         return HttpResponse(status=200)
