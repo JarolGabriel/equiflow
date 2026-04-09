@@ -32,7 +32,6 @@ class AlertService:
                 alert.status = PriceAlert.AlertStatus.FIRED
                 alert.save()
 
-                # --- ESTO ENVÍA EL MENSAJE AL WEBSOCKET ---
                 group_name = f"user_alerts_{alert.user.id}"
                 async_to_sync(channel_layer.group_send)(
                     group_name,

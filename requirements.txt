@@ -16,3 +16,6 @@ daphne==4.1.0
 channels==4.1.0
 channels-redis==4.2.0
 reportlab==4.4.10
+drf-spectacular
+django-allauth
+dj-rest-auth

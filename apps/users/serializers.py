@@ -19,3 +19,23 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             last_name=validated_data.get("last_name", ""),
         )
         return user
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for retrieving and updating user profile information.
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "is_pro",
+            "is_verified",
+            "profile_picture",
+            "created_at",
+        ]
+        read_only_fields = ["id", "email", "is_pro", "is_verified", "created_at"]
