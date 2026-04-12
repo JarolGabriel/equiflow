@@ -37,6 +37,7 @@ class User(AbstractUser):
     oauth_id = models.CharField(max_length=100, null=True, blank=True)
 
     is_pro = models.BooleanField(default=False)
+    pdf_downloads = models.IntegerField(default=0)
     profile_picture = models.ImageField(upload_to="profiles/", null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

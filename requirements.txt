@@ -21,3 +21,4 @@ django-allauth
 dj-rest-auth
 django-resend
 resend
+openpyxl

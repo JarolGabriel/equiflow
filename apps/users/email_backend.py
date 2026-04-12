@@ -20,7 +20,7 @@ class ResendEmailBackend(BaseEmailBackend):
                     "from": settings.DEFAULT_FROM_EMAIL,
                     "to": message.to,
                     "subject": message.subject,
-                    "html": message.body,  # Django envía el reset como texto/html
+                    "html": message.body,
                 }
                 resend.Emails.send(params)
                 count += 1

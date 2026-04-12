@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from drf_spectacular.utils import extend_schema  # Importamos Swagger
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -56,7 +56,7 @@ class StripeWebhookView(APIView):
     @extend_schema(
         summary="Stripe Webhook Handler",
         description="Internal endpoint to receive events from Stripe. It automatically upgrades the user to PRO when a payment succeeds.",
-        exclude=True,  # Opcional: Podrías ocultarlo del Swagger ya que es para Stripe, no para humanos
+        exclude=True,
     )
     def post(self, request, *args, **kwargs):
         # ... (Tu código de webhook se mantiene exactamente igual) ...

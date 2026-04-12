@@ -11,12 +11,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.users.permissions import IsProUser
-
-from .models import Asset, Portfolio, PortfolioAsset, Transaction
+# from apps.users.permissions import IsProUser
+from .models import Asset, FavoriteAsset, Portfolio, PortfolioAsset, Transaction
 from .serializers import (
     AssetPriceHistorySerializer,
     AssetSerializer,
+    FavoriteSerializer,
     PortfolioAssetSerializer,
     PortfolioSerializer,
     TransactionSerializer,
@@ -161,14 +161,23 @@ class PortfolioAssetViewSet(
 
 
 class ExportPortfolioPDFView(APIView):
-    permission_classes = [IsAuthenticated, IsProUser]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Export Portfolio to PDF",
-        description="Generates a professional financial report in PDF format. **Exclusive for PRO users.**",
-        responses={200: bytes},  # Indica que la respuesta es un archivo/binario
+        description="Generates a professional financial report. **Free users get 1 free download**, then requires PRO.",
+        responses={200: bytes},
     )
     def get(self, request, portfolio_id):
+        user = request.user
+        if not user.is_pro:
+            if user.pdf_downloads >= 1:
+                return Response(
+                    {
+                        "detail": "This feature is exclusive to users with a PRO subscription. You have already used your free download."
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         try:
             portfolio = Portfolio.objects.get(id=portfolio_id, user=request.user)
         except Portfolio.DoesNotExist:
@@ -177,6 +186,10 @@ class ExportPortfolioPDFView(APIView):
             )
 
         pdf_buffer = PortfolioReportService.generate_pdf(portfolio)
+
+        if not user.is_pro:
+            user.pdf_downloads += 1
+            user.save()
         filename = (
             f"EquiFlow_Report_{portfolio.name}_{datetime.now().strftime('%Y%m%d')}.pdf"
         )
@@ -187,3 +200,16 @@ class ExportPortfolioPDFView(APIView):
             filename=filename,
             content_type="application/pdf",
         )
+
+
+# apps/investments/views.py
+class FavoriteViewSet(viewsets.ModelViewSet):
+    serializer_class = FavoriteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        return FavoriteAsset.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

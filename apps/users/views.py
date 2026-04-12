@@ -4,16 +4,14 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
-
-# from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import UserProfileSerializer, UserRegisterSerializer
 
 
 class RegisterView(generics.CreateAPIView):
-    # permission_classes = [AllowAny]
+    permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
 
     @extend_schema(

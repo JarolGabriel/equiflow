@@ -165,3 +165,15 @@ class AssetPriceHistory(models.Model):
         indexes = [
             models.Index(fields=["asset", "timestamp"]),
         ]
+
+
+# apps/investments/models.py
+class FavoriteAsset(models.Model):
+    user = models.ForeignKey(
+        "users.User", on_delete=models.CASCADE, related_name="favorites"
+    )
+    asset = models.ForeignKey("investments.Asset", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "asset")
