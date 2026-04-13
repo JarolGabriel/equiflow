@@ -18,6 +18,7 @@ COPY . /app/
 
 
 RUN SECRET_KEY=dummy-key-for-build python manage.py collectstatic --noinput
+RUN SECRET_KEY=dummy-key-for-build REDIS_URL=redis://localhost:6379/0 python manage.py collectstatic --noinput
 
 RUN chmod +x /app/start.sh
 

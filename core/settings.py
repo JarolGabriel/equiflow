@@ -259,11 +259,16 @@ SIMPLE_JWT = {
 }
 
 
-# Celery Configuration
-# CELERY_BROKER_URL = "redis://redis:6379/0"
-CELERY_BROKER_URL = os.environ.get("REDIS_URL") + "?ssl_cert_reqs=none"
-# CELERY_RESULT_BACKEND = "redis://redis:6379/0"
-CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL") + "?ssl_cert_reqs=none"
+REDIS_URL_ENV = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+
+
+if not DEBUG or "render.com" in REDIS_URL_ENV:
+    CELERY_BROKER_URL = f"{REDIS_URL_ENV}?ssl_cert_reqs=none"
+    CELERY_RESULT_BACKEND = f"{REDIS_URL_ENV}?ssl_cert_reqs=none"
+else:
+    CELERY_BROKER_URL = REDIS_URL_ENV
+    CELERY_RESULT_BACKEND = REDIS_URL_ENV
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
