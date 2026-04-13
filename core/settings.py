@@ -146,6 +146,19 @@ REST_AUTH = {
     "LOGOUT_ON_PASSWORD_CHANGE": True,
 }
 
+# --- CONFIGURACIÓN CRÍTICA PARA AUTH SIN USERNAME ---
+
+# 1. Decirle a Django y Allauth que NO hay username
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # Esta es la que debería apagar el error
+
+# 2. Configuración específica para dj-rest-auth
+# Esto obliga a la librería a no buscar el campo username en los serializadores
+AUTHENTICATION_METHOD = "email"
+
+# 3. Asegurar que Allauth no intente buscar el campo en el modelo
 USER_MODEL_USERNAME_FIELD = None
 
 LANGUAGE_CODE = "en-us"
