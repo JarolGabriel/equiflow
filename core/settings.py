@@ -111,9 +111,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=False if DEBUG else True,
+            default=DATABASE_URL, conn_max_age=600, ssl_require=not DEBUG
         )
     }
 else:
@@ -144,6 +142,7 @@ REST_AUTH = {
     "JWT_AUTH_REFRESH_COOKIE": "equiflow-refresh-token",
     "JWT_AUTH_HTTPONLY": False,
     "LOGOUT_ON_PASSWORD_CHANGE": True,
+    "USER_DETAILS_SERIALIZER": "dj_rest_auth.serializers.UserDetailsSerializer",
 }
 
 # --- CONFIGURACIÓN CRÍTICA PARA AUTH SIN USERNAME ---
