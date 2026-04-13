@@ -95,4 +95,4 @@ databases:
   - name: equiflow-db
     plan: free
     databaseName: equiflow_db
-    user: postgres
+    
