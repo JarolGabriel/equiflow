@@ -22,8 +22,6 @@ services:
         generateValue: true
       - key: ALLOWED_HOSTS
         value: "*"
-      
-      
       - key: ALPHA_VANTAGE_API_KEY
         sync: false
       - key: TWELVE_DATA_API_KEY
@@ -45,7 +43,6 @@ services:
       - key: RESEND_API_KEY
         sync: false
 
-  
   - type: web
     name: equiflow-worker
     env: docker
@@ -64,13 +61,16 @@ services:
           type: redis
           name: equiflow-redis
           property: connectionString
-      
+      - key: SECRET_KEY 
+        fromService:
+          type: web
+          name: equiflow-web
+          property: envVar:SECRET_KEY
       - key: ALPHA_VANTAGE_API_KEY
         sync: false
       - key: TWELVE_DATA_API_KEY
         sync: false
 
-  
   - type: web
     name: equiflow-beat
     env: docker
@@ -85,6 +85,11 @@ services:
           type: redis
           name: equiflow-redis
           property: connectionString
+      - key: SECRET_KEY 
+        fromService:
+          type: web
+          name: equiflow-web
+          property: envVar:SECRET_KEY
 
   - type: redis
     name: equiflow-redis
@@ -95,4 +100,3 @@ databases:
   - name: equiflow-db
     plan: free
     databaseName: equiflow_db
-    
