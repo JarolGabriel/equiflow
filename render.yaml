@@ -1,4 +1,5 @@
 services:
+  # ===== WEB SERVICE (Django + DRF + Channels) =====
   - type: web
     name: equiflow-web
     env: docker
@@ -43,7 +44,8 @@ services:
       - key: RESEND_API_KEY
         sync: false
 
-  - type: web
+  # ===== CELERY WORKER (Background Tasks) =====
+  - type: worker
     name: equiflow-worker
     env: docker
     plan: free
@@ -65,13 +67,16 @@ services:
         fromService:
           type: web
           name: equiflow-web
-          property: envVar:SECRET_KEY
+          envVarKey: SECRET_KEY
+      - key: DEBUG
+        value: "False"
       - key: ALPHA_VANTAGE_API_KEY
         sync: false
       - key: TWELVE_DATA_API_KEY
         sync: false
 
-  - type: web
+  # ===== CELERY BEAT (Scheduled Tasks) =====
+  - type: worker
     name: equiflow-beat
     env: docker
     plan: free
@@ -80,6 +85,10 @@ services:
     dockerfilePath: ./Dockerfile
     dockerCommand: "celery -A core beat --loglevel=info"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: equiflow-db
+          property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
@@ -89,13 +98,17 @@ services:
         fromService:
           type: web
           name: equiflow-web
-          property: envVar:SECRET_KEY
+          envVarKey: SECRET_KEY
+      - key: DEBUG
+        value: "False"
 
+  # ===== REDIS (Cache + Celery Broker + Channels) =====
   - type: redis
     name: equiflow-redis
     plan: free
     ipAllowList: [] 
 
+# ===== POSTGRESQL DATABASE =====
 databases:
   - name: equiflow-db
     plan: free
