@@ -22,3 +22,6 @@ dj-rest-auth
 django-resend
 resend
 openpyxl
+pytest-django
+factory-boy
+whitenoise==6.6.0
