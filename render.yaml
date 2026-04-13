@@ -53,7 +53,7 @@ services:
     region: ohio
     dockerContext: .
     dockerfilePath: ./Dockerfile
-    command: "celery -A core worker --loglevel=info"
+    dockerCommand: "celery -A core worker --loglevel=info"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -78,7 +78,7 @@ services:
     region: ohio
     dockerContext: .
     dockerfilePath: ./Dockerfile
-    command: "celery -A core beat --loglevel=info"
+    dockerCommand: "celery -A core beat --loglevel=info"
     envVars:
       - key: REDIS_URL
         fromService:
