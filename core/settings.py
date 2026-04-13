@@ -90,14 +90,18 @@ ASGI_APPLICATION = "core.asgi.application"
 #     },
 # }
 
+# Unificamos Redis para Channels y Celery
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/1")
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.getenv("REDIS_URL", "redis://redis:6379/1")],
+            "hosts": [REDIS_URL],
         },
     },
 }
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -148,7 +152,9 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL"), conn_max_age=600
+        default=os.getenv("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True if not DEBUG else False,
     )
 }
 
@@ -237,9 +243,9 @@ SIMPLE_JWT = {
 
 # Celery Configuration
 # CELERY_BROKER_URL = "redis://redis:6379/0"
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_BROKER_URL = REDIS_URL
 # CELERY_RESULT_BACKEND = "redis://redis:6379/0"
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
