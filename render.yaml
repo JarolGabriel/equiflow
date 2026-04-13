@@ -46,7 +46,7 @@ services:
         sync: false
 
   
-  - type: worker
+  - type: web
     name: equiflow-worker
     env: docker
     plan: free
@@ -71,7 +71,7 @@ services:
         sync: false
 
   
-  - type: worker
+  - type: web
     name: equiflow-beat
     env: docker
     plan: free
