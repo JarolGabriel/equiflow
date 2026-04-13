@@ -45,6 +45,47 @@ services:
       - key: RESEND_API_KEY
         sync: false
 
+  
+  - type: worker
+    name: equiflow-worker
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    command: "celery -A core worker --loglevel=info"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: equiflow-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: equiflow-redis
+          property: connectionString
+      
+      - key: ALPHA_VANTAGE_API_KEY
+        sync: false
+      - key: TWELVE_DATA_API_KEY
+        sync: false
+
+  
+  - type: worker
+    name: equiflow-beat
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    command: "celery -A core beat --loglevel=info"
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: equiflow-redis
+          property: connectionString
+
   - type: redis
     name: equiflow-redis
     plan: free

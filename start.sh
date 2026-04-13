@@ -1,18 +1,12 @@
 #!/bin/bash
 
-
 set -e
 
 echo "Running migrations..."
 python manage.py migrate
 
-echo "Starting Celery Worker..."
+echo "Collecting static files..."
+python manage.py collectstatic --noinput
 
-celery -A core worker --loglevel=info &
-
-echo "Starting Celery Beat..."
-celery -A core beat --loglevel=info &
-
-echo "Starting Daphne (ASGI)..."
-
+echo "Starting Daphne (ASGI) on port $PORT..."
 exec daphne -b 0.0.0.0 -p $PORT core.asgi:application
