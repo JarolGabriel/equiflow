@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import dj_database_url
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
@@ -109,11 +108,8 @@ TEMPLATES = [
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL, conn_max_age=600, ssl_require=not DEBUG
-        )
-    }
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 else:
     DATABASES = {
         "default": {
@@ -145,21 +141,18 @@ REST_AUTH = {
     "USER_DETAILS_SERIALIZER": "dj_rest_auth.serializers.UserDetailsSerializer",
 }
 
-# --- CONFIGURACIÓN CRÍTICA PARA AUTH SIN USERNAME ---
+
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
-# ✅ NUEVAS CONFIGURACIONES AGREGADAS:
+
 ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "allauth.socialaccount.adapter.DefaultSocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
-# Para asegurar que allauth no busque username en ningún lado
-ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
-ACCOUNT_UNIQUE_EMAIL = True
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
