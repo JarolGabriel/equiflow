@@ -107,22 +107,23 @@ TEMPLATES = [
     },
 ]
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "equiflow_db",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": "db",
+        "PORT": "5432",
+    }
+}
+
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
     DATABASES["default"] = dj_database_url.config(
         default=DATABASE_URL, conn_max_age=600, ssl_require=True
     )
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": "equiflow_db",
-            "USER": "postgres",
-            "PASSWORD": "postgres",
-            "HOST": "db",
-            "PORT": "5432",
-        }
-    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": f"django.contrib.auth.password_validation.{v}"}
