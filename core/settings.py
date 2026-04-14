@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import dj_database_url
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
@@ -106,11 +107,12 @@ TEMPLATES = [
     },
 ]
 
+
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-else:
+    DATABASES["default"] = dj_database_url.config(
+        default=DATABASE_URL, conn_max_age=600, ssl_require=True
+    )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
