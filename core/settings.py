@@ -107,14 +107,20 @@ TEMPLATES = [
     },
 ]
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "equiflow_db",
+#         "USER": "postgres",
+#         "PASSWORD": "postgres",
+#         "HOST": "db",
+#         "PORT": "5432",
+#     }
+# }
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "equiflow_db",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "db",
-        "PORT": "5432",
     }
 }
 
@@ -122,7 +128,9 @@ DATABASES = {
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
     DATABASES["default"] = dj_database_url.config(
-        default=DATABASE_URL, conn_max_age=600, ssl_require=True
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=not DEBUG or "supabase" in DATABASE_URL,
     )
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -182,12 +190,14 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(minutes=60)}
 
 # --- Celery ---
-CELERY_BROKER_URL = (
-    f"{REDIS_URL}?ssl_cert_reqs=none" if REDIS_URL.startswith("rediss") else REDIS_URL
-)
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
+
+if REDIS_URL.startswith("rediss"):
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": None}
+    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": None}
 
 CELERY_BEAT_SCHEDULE = {
     "update-prices": {

@@ -13,9 +13,9 @@ class Asset(models.Model):
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    symbol = models.CharField(max_length=20, unique=True)  # Ej: BTC, AAPL
+    symbol = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
-    asset_type = models.CharField(max_length=20)  # stock, crypto
+    asset_type = models.CharField(max_length=20)
     exchange = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

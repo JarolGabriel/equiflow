@@ -9,15 +9,12 @@ python manage.py collectstatic --noinput
 echo "Iniciando Celery Worker..."
 celery -A core worker --loglevel=info --concurrency=1 &
 
-echo "Creando superusuario..."
-python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email='tu_email@ejemplo.com').exists() or User.objects.create_superuser('tu_email@ejemplo.com', 'tu_password_segura')"
-
-echo "Cargando activos semilla (Assets)..."
+echo "Poblando base de datos con assets iniciales..."
 python manage.py seed_assets
 
-# 3. Iniciar Celery Beat en segundo plano
-echo "Iniciando Celery Beat..."
-celery -A core beat --loglevel=info &
+echo "Revisando superusuario..."
+python manage.py shell -c "from apps.users.models import User; User.objects.filter(email='flex.amazon2025@gmail.com').exists() or User.objects.create_superuser('flex.amazon2025@gmail.com', '123456789')"
+
 
 # 4. Iniciar el servidor Web (este se queda al frente)
 echo "Iniciando Servidor Web..."

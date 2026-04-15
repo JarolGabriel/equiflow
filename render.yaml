@@ -44,7 +44,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
 
-  # ===== CELERY WORKER (Background Tasks) =====
+ # ===== CELERY WORKER =====
   - type: worker
     name: equiflow-worker
     env: docker
@@ -55,14 +55,9 @@ services:
     dockerCommand: "celery -A core worker --loglevel=info"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: equiflow-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: equiflow-redis
-          property: connectionString
+        sync: false
       - key: SECRET_KEY 
         fromService:
           type: web
@@ -70,12 +65,8 @@ services:
           envVarKey: SECRET_KEY
       - key: DEBUG
         value: "False"
-      - key: ALPHA_VANTAGE_API_KEY
-        sync: false
-      - key: TWELVE_DATA_API_KEY
-        sync: false
 
-  # ===== CELERY BEAT (Scheduled Tasks) =====
+  # ===== CELERY BEAT =====
   - type: worker
     name: equiflow-beat
     env: docker
@@ -86,14 +77,9 @@ services:
     dockerCommand: "celery -A core beat --loglevel=info"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: equiflow-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: equiflow-redis
-          property: connectionString
+        sync: false
       - key: SECRET_KEY 
         fromService:
           type: web
@@ -102,14 +88,3 @@ services:
       - key: DEBUG
         value: "False"
 
-  # ===== REDIS (Cache + Celery Broker + Channels) =====
-  - type: redis
-    name: equiflow-redis
-    plan: free
-    ipAllowList: [] 
-
-# ===== POSTGRESQL DATABASE =====
-databases:
-  - name: equiflow-db
-    plan: free
-    databaseName: equiflow_db
