@@ -45,16 +45,20 @@ Using **Celery Beat**, the system performs background polling of financial data 
 
 ## 📂 Project Structure
 
-```plaintext
-├── apps/
-│   ├── alerts/         # Real-time price thresholds & WebSockets
-│   ├── investments/    # Core: Portfolios, Transactions & WAC Signals
-│   ├── market_data/    # External API integrations & Celery Tasks
-│   ├── payments/       # Stripe Integration & Webhooks
-│   └── users/          # Custom User Model & JWT/Social Auth
-├── core/               # Project settings & ASGI/WSGI config
-├── conftest.py         # Global Pytest fixtures
-└── pytest.ini          # Testing configuration
+ 
+    ├── apps/
+    │   ├── alerts/         # Real-time price thresholds & WebSockets
+    │   ├── investments/    # Core: Portfolios, Transactions & WAC Signals
+    │   ├── market_data/    # External API integrations & Celery Tasks
+    │   ├── payments/       # Stripe Integration & Webhooks
+    │   └── users/          # Custom User Model & JWT/Social Auth
+    ├── core/               # Project settings & ASGI/WSGI config
+    ├── conftest.py         # Global Pytest fixtures
+    └── pytest.ini          # Testing configuration
+
+
+
+---
 
 🧪 Testing & Quality Assurance
 We maintain code reliability using Pytest.
@@ -77,3 +81,105 @@ python -m pytest
 | `GET`  | `/api/investments/portfolios/{id}/export-pdf/` | Export pro financial report |
 | `POST` | `/api/payments/webhook/`                       | Secure Stripe event listener |
 | `GET`  | `/api/users/github/login/`                     | Social authentication entry point |
+
+
+---
+
+# 🔑 Authentication & User Management
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/users/register/` | POST | Register a new user account. |
+| `/api/users/login/` | POST | Authenticate user and obtain Access/Refresh tokens. |
+| `/api/users/password/reset/` | POST | Request a password reset link via email. |
+| `/api/users/password/reset/confirm/` | POST | Confirm password reset using the token provided in email. |
+| `/api/users/password/change/` | POST | Change password for the authenticated user. |
+
+## Request Body Examples
+
+### User Registration
+
+```json
+{
+    "email": "user@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "password": "SecurePassword123!"
+}
+```
+
+### Password Reset Confirmation
+
+```json
+{
+    "uid": "MTI",
+    "token": "asdf-1234567890",
+    "new_password1": "NewStrongPassword2026!",
+    "new_password2": "NewStrongPassword2026!"
+}
+```
+
+---
+
+# 📈 Investments & Portfolios
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/investments/portfolios/` | GET/POST | List all user portfolios or create a new one. |
+| `/api/investments/transactions/` | POST | Record a new BUY or SELL transaction. |
+| `/api/investments/assets/` | GET | Get the global catalog of supported assets. |
+| `/api/investments/assets/my-favorites/` | GET | Retrieve the user's Watchlist (Favorite assets). |
+
+## Request Body Examples
+
+### Create a Portfolio
+
+```json
+{
+    "name": "Main Growth Portfolio",
+    "description": "Long-term focus on Crypto and Tech stocks",
+    "currency": "USD",
+    "is_public": false
+}
+```
+
+### Register a Transaction
+
+**Note:** Transactions automatically update the portfolio's balance and Average Purchase Price (WAC) via Django Signals.
+
+```json
+{
+    "portfolio": "UUID-OF-YOUR-PORTFOLIO",
+    "asset": "UUID-OF-THE-ASSET",
+    "transaction_type": "BUY",
+    "quantity": 1.25,
+    "price_at_transaction": 65400.50
+}
+```
+
+---
+
+# 🌍 Real-Time Market Data
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/market/status/` | GET | Fetch live market prices and 24h changes from Redis cache. |
+
+## Sample Response (200 OK)
+
+```json
+{
+  "status": "success",
+  "last_update": "2026-04-16T02:01:53Z",
+  "data": {
+    "BTC": { 
+        "price": 74624.0, 
+        "change": 2.5 
+    },
+    "AAPL": { 
+        "price": 266.42, 
+        "change": null 
+    }
+  }
+}
+```
