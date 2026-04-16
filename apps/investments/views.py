@@ -28,6 +28,7 @@ from .services import PortfolioReportService
     list=extend_schema(
         summary="List all available assets",
         description="Retrieve a list of stocks, cryptos, and forex pairs supported by EquiFlow.",
+        auth=[],
     ),
     retrieve=extend_schema(summary="Get asset details"),
 )
@@ -35,6 +36,7 @@ class AssetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
