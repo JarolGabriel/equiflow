@@ -126,6 +126,7 @@ class MarketSummaryAPIView(APIView):
     @extend_schema(
         summary="Market Dashboard Summary",
         description="Returns grouped assets (crypto, stocks, forex) with their latest prices for the main dashboard.",
+        auth=[],
     )
     def get(self, request):
         assets = Asset.objects.all()
@@ -143,6 +144,7 @@ class MarketSummaryAPIView(APIView):
     list=extend_schema(
         summary="List portfolio assets",
         description="Shows the current holdings (quantity and value) within the user's portfolios.",
+        auth=[],
     ),
     destroy=extend_schema(
         summary="Remove asset from portfolio",

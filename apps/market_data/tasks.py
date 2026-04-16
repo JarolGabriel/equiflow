@@ -2,6 +2,7 @@ import logging
 
 import redis
 from celery import shared_task
+from django.conf import settings
 from django.utils import timezone
 
 from apps.alerts.services import AlertService
@@ -10,7 +11,8 @@ from apps.investments.models import Asset, AssetPriceHistory
 from .services import CoinGeckoService, ForexService, StockService
 
 logger = logging.getLogger(__name__)
-redis_client = redis.StrictRedis(host="redis", port=6379, db=0, decode_responses=True)
+
+redis_client = redis.from_url(settings.REDIS_URL)
 
 
 @shared_task

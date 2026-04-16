@@ -53,10 +53,10 @@ INSTALLED_APPS = [
 ASGI_APPLICATION = "core.asgi.application"
 WSGI_APPLICATION = "core.wsgi.application"
 
-# --- Configuración de Redis Segura ---
+
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
-# Forzamos SSL en Render (rediss://)
+
 if (
     not DEBUG
     and REDIS_URL.startswith("redis://")
@@ -107,16 +107,6 @@ TEMPLATES = [
     },
 ]
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "equiflow_db",
-#         "USER": "postgres",
-#         "PASSWORD": "postgres",
-#         "HOST": "db",
-#         "PORT": "5432",
-#     }
-# }
 
 DATABASES = {
     "default": {
@@ -152,6 +142,16 @@ REST_AUTH = {
     "USER_DETAILS_SERIALIZER": "dj_rest_auth.serializers.UserDetailsSerializer",
 }
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "EquiFlow API",
+    "DESCRIPTION": "Financial Portfolio Manager",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "POSTPROCESSING_MODS": [
+        "drf_spectacular.preprocessing.filter_none",
+    ],
+}
+
 
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
@@ -182,7 +182,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
+        "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }

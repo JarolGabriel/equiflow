@@ -1,6 +1,8 @@
 import logging
 from decimal import Decimal
 
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 import io
@@ -12,7 +14,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-redis_client = redis.StrictRedis(host="redis", port=6379, db=0, decode_responses=True)
+redis_client = redis.from_url(settings.REDIS_URL)
 
 
 class PriceService:

@@ -1,4 +1,5 @@
 import redis
+from django.conf import settings
 from rest_framework import serializers
 
 from .models import (
@@ -10,7 +11,7 @@ from .models import (
     Transaction,
 )
 
-redis_client = redis.StrictRedis(host="redis", port=6379, db=0, decode_responses=True)
+redis_client = redis.from_url(settings.REDIS_URL)
 
 
 class AssetSerializer(serializers.ModelSerializer):
