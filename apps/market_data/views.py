@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from apps.investments.models import Asset, FavoriteAsset
 from apps.investments.serializers import AssetSerializer
 
-redis_client = redis.from_url(settings.REDIS_URL)
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
 class GlobalMarketStatusAPIView(APIView):

@@ -71,8 +71,8 @@ class PortfolioAssetSerializer(serializers.ModelSerializer):
 
     asset_details = AssetSerializer(source="asset", read_only=True)
 
-    current_balance = serializers.ReadOnlyField(source="current_value")
-    profit_loss = serializers.ReadOnlyField()
+    current_balance = serializers.SerializerMethodField()
+    profit_loss = serializers.SerializerMethodField()
 
     class Meta:
         model = PortfolioAsset
@@ -101,6 +101,21 @@ class PortfolioAssetSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def get_current_balance(self, obj):
+
+        price = redis_client.get(f"price_{obj.asset.symbol}")
+        if price:
+            return float(obj.quantity) * float(price)
+        return float(obj.quantity) * float(obj.average_purchase_price)
+
+    def get_profit_loss(self, obj):
+        price = redis_client.get(f"price_{obj.asset.symbol}")
+        if price:
+            current_val = float(obj.quantity) * float(price)
+            purchase_val = float(obj.quantity) * float(obj.average_purchase_price)
+            return current_val - purchase_val
+        return 0.0
+
 
 class PortfolioSerializer(serializers.ModelSerializer):
     """
@@ -112,8 +127,8 @@ class PortfolioSerializer(serializers.ModelSerializer):
 
     assets = PortfolioAssetSerializer(many=True, read_only=True)
 
-    total_balance = serializers.ReadOnlyField()
-    total_profit_loss = serializers.ReadOnlyField()
+    total_balance = serializers.SerializerMethodField()
+    total_profit_loss = serializers.SerializerMethodField()
 
     items = serializers.ListField(
         child=serializers.DictField(), write_only=True, required=False
@@ -155,6 +170,29 @@ class PortfolioSerializer(serializers.ModelSerializer):
                 transaction_type=Transaction.TransactionType.BUY,
             )
         return portfolio
+
+    def get_total_balance(self, obj):
+
+        total = 0
+        for asset in obj.assets.all():
+            price = redis_client.get(f"price_{asset.asset.symbol}")
+            current_price = (
+                float(price) if price else float(asset.average_purchase_price)
+            )
+            total += float(asset.quantity) * current_price
+        return total
+
+    def get_total_profit_loss(self, obj):
+        total_pl = 0
+        for asset in obj.assets.all():
+            price = redis_client.get(f"price_{asset.asset.symbol}")
+            if price:
+                current_val = float(asset.quantity) * float(price)
+                purchase_val = float(asset.quantity) * float(
+                    asset.average_purchase_price
+                )
+                total_pl += current_val - purchase_val
+        return total_pl
 
 
 class TransactionSerializer(serializers.ModelSerializer):

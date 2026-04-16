@@ -12,7 +12,7 @@ from .services import CoinGeckoService, ForexService, StockService
 
 logger = logging.getLogger(__name__)
 
-redis_client = redis.from_url(settings.REDIS_URL)
+redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
 @shared_task
