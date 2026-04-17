@@ -57,22 +57,17 @@ WSGI_APPLICATION = "core.wsgi.application"
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
 
-if (
-    not DEBUG
-    and REDIS_URL.startswith("redis://")
-    and "render.com" in os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
-):
+if not DEBUG and REDIS_URL.startswith("redis://"):
     REDIS_URL = REDIS_URL.replace("redis://", "rediss://")
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [
-                f"{REDIS_URL}?ssl_cert_reqs=none"
-                if REDIS_URL.startswith("rediss")
-                else REDIS_URL
-            ],
+            "hosts": [REDIS_URL],
+            "redis_params": {"ssl_cert_reqs": None}
+            if REDIS_URL.startswith("rediss")
+            else {},
         },
     },
 }
