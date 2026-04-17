@@ -70,12 +70,9 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                {
-                    "address": REDIS_URL,
-                    "ssl": ssl.create_default_context(cert_reqs=ssl.CERT_NONE)
-                    if REDIS_URL.startswith("rediss")
-                    else None,
-                }
+                f"{REDIS_URL}?ssl_cert_reqs=none"
+                if REDIS_URL.startswith("rediss")
+                else REDIS_URL
             ],
         },
     },
@@ -205,7 +202,6 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
 if REDIS_URL.startswith("rediss"):
-    # Usamos CERT_NONE de la librería ssl para mayor compatibilidad
     CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
     CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 
