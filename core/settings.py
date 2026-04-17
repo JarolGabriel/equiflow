@@ -1,4 +1,5 @@
 import os
+import ssl
 from datetime import timedelta
 from pathlib import Path
 
@@ -69,9 +70,12 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                f"{REDIS_URL}?ssl_cert_reqs=none"
-                if REDIS_URL.startswith("rediss")
-                else REDIS_URL
+                {
+                    "address": REDIS_URL,
+                    "ssl": ssl.create_default_context(cert_reqs=ssl.CERT_NONE)
+                    if REDIS_URL.startswith("rediss")
+                    else None,
+                }
             ],
         },
     },
@@ -190,14 +194,20 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(minutes=60)}
 
 # --- Celery ---
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
+
+if REDIS_URL.startswith("rediss"):
+    CELERY_BROKER_URL = f"{REDIS_URL}?ssl_cert_reqs=none"
+else:
+    CELERY_BROKER_URL = REDIS_URL
+
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
 if REDIS_URL.startswith("rediss"):
-    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": None}
-    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": None}
+    # Usamos CERT_NONE de la librería ssl para mayor compatibilidad
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
+    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 CELERY_BEAT_SCHEDULE = {
     "update-prices": {
@@ -220,8 +230,6 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
 
-
-# settings.py
 
 # --- Email set ---
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
