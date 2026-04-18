@@ -59,7 +59,7 @@ class StripeWebhookView(APIView):
         exclude=True,
     )
     def post(self, request, *args, **kwargs):
-        # ... (Tu código de webhook se mantiene exactamente igual) ...
+
         payload = request.body
         sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
         endpoint_secret = settings.STRIPE_WEBHOOK_SECRET

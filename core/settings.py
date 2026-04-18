@@ -4,7 +4,6 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
-from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -70,7 +69,11 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                f"{REDIS_URL}?ssl_cert_reqs=none"
+                (
+                    f"{REDIS_URL}&ssl_cert_reqs=none"
+                    if "?" in REDIS_URL
+                    else f"{REDIS_URL}?ssl_cert_reqs=none"
+                )
                 if REDIS_URL.startswith("rediss")
                 else REDIS_URL
             ],
@@ -192,25 +195,21 @@ SIMPLE_JWT = {"ACCESS_TOKEN_LIFETIME": timedelta(minutes=60)}
 
 # --- Celery ---
 
-if REDIS_URL.startswith("rediss"):
-    CELERY_BROKER_URL = f"{REDIS_URL}?ssl_cert_reqs=none"
-else:
-    CELERY_BROKER_URL = REDIS_URL
 
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
+CELERY_BROKER_URL = REDIS_URL
+
 
 if REDIS_URL.startswith("rediss"):
     CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
     CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 
-CELERY_BEAT_SCHEDULE = {
-    "update-prices": {
-        "task": "apps.market_data.tasks.update_all_market_prices",
-        "schedule": crontab(minute="*/15"),
-    },
-}
+    if "ssl_cert_reqs" not in CELERY_BROKER_URL:
+        separator = "&" if "?" in CELERY_BROKER_URL else "?"
+        CELERY_BROKER_URL = f"{REDIS_URL}{separator}ssl_cert_reqs=none"
+
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
 
 SITE_ID = 2
 AUTHENTICATION_BACKENDS = [

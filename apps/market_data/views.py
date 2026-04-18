@@ -3,6 +3,7 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,6 +17,8 @@ class GlobalMarketStatusAPIView(APIView):
     """
     Public endpoint to fetch real-time market data directly from Redis.
     """
+
+    permission_classes = [AllowAny]
 
     @extend_schema(
         summary="Get Global Market Status (Real-time)",
@@ -82,6 +85,16 @@ class AssetViewSet(viewsets.ReadOnlyModelViewSet):
             ),
         },
     )
+    def get_permissions(self):
+
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [AllowAny]
+
+        else:
+            permission_classes = [IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
     @action(detail=False, methods=["post"], url_path="toggle-favorite")
     def toggle_favorite(self, request):
         asset_id = request.data.get("asset_id")
