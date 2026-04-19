@@ -85,7 +85,7 @@ class GoogleLogin(SocialLoginView):
 
     adapter_class = GoogleOAuth2Adapter
     callback_url = os.getenv(
-        "GITHUB_CALLBACK_URL", "http://localhost:8000/api/users/github/callback/"
+        "GOOGLE_CALLBACK_URL", "http://localhost:8000/api/users/google/callback/"
     )
     client_class = OAuth2Client
 
@@ -98,7 +98,7 @@ class GitHubLogin(SocialLoginView):
 
     adapter_class = GitHubOAuth2Adapter
     callback_url = os.getenv(
-        "GOOGLE_CALLBACK_URL", "http://localhost:8000/api/users/google/callback/"
+        "GITHUB_CALLBACK_URL", "http://localhost:8000/api/users/github/callback/"
     )
     client_class = OAuth2Client
 
