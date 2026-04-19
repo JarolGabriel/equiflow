@@ -4,6 +4,7 @@ from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
+from django.http import HttpResponse
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -100,3 +101,8 @@ class GitHubLogin(SocialLoginView):
         "GOOGLE_CALLBACK_URL", "http://localhost:8000/api/users/google/callback/"
     )
     client_class = OAuth2Client
+
+
+def github_callback_test(request):
+    code = request.GET.get("code")
+    return HttpResponse(f"Copia este codigo para Postman: {code}")
