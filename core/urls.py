@@ -27,15 +27,15 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Esquema (archivo YAML/JSON interno)
+    # auth
+    path("accounts/", include("allauth.urls")),
+    # doc
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    # Documentación visual (Swagger UI)
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
-    # Documentación alternativa (ReDoc)
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # my app
     path("api/users/", include("apps.users.urls")),

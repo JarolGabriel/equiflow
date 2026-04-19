@@ -81,7 +81,7 @@ class GoogleLogin(SocialLoginView):
     """
 
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://localhost:8000/api/users/google/callback/"
+    callback_url = "https://equiflow-web.onrender.com/api/users/google/callback/"
     client_class = OAuth2Client
 
 
@@ -92,5 +92,5 @@ class GitHubLogin(SocialLoginView):
     """
 
     adapter_class = GitHubOAuth2Adapter
-    callback_url = "http://localhost:8000/api/users/github/callback/"
+    callback_url = "https://equiflow-web.onrender.com/api/users/github/callback/"
     client_class = OAuth2Client
