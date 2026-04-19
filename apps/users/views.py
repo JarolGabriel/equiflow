@@ -1,3 +1,5 @@
+import os
+
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -81,7 +83,9 @@ class GoogleLogin(SocialLoginView):
     """
 
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "https://equiflow-web.onrender.com/api/users/google/callback/"
+    callback_url = os.getenv(
+        "GITHUB_CALLBACK_URL", "http://localhost:8000/api/users/github/callback/"
+    )
     client_class = OAuth2Client
 
 
@@ -92,5 +96,7 @@ class GitHubLogin(SocialLoginView):
     """
 
     adapter_class = GitHubOAuth2Adapter
-    callback_url = "https://equiflow-web.onrender.com/api/users/github/callback/"
+    callback_url = os.getenv(
+        "GOOGLE_CALLBACK_URL", "http://localhost:8000/api/users/google/callback/"
+    )
     client_class = OAuth2Client
