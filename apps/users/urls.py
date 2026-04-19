@@ -20,6 +20,7 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("google/", GoogleLogin.as_view(), name="google_login"),
     path("github/", GitHubLogin.as_view(), name="github_login"),
+    path("github/callback/", lambda r: None, name="github_callback"),
     path("password/reset/", PasswordResetView.as_view(), name="rest_password_reset"),
     path(
         "password/reset/confirm/<uidb64>/<token>/",
