@@ -106,3 +106,12 @@ class GitHubLogin(SocialLoginView):
 def github_callback_test(request):
     code = request.GET.get("code")
     return HttpResponse(f"Copia este codigo para Postman: {code}")
+
+
+def google_callback_test(request):
+    code = request.GET.get("code")
+    if code:
+        return HttpResponse(
+            f"Google Code recibido! Copia este codigo para Postman: {code}"
+        )
+    return HttpResponse("No se recibió código de Google", status=400)
