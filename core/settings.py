@@ -9,8 +9,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-default")
 DEBUG = os.getenv("DEBUG", "False") == "True"
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    if DEBUG:
+        import secrets
+
+        SECRET_KEY = "dev-only-" + secrets.token_hex(32)
+    else:
+        raise ValueError("SECRET_KEY must be set in production environment")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,0.0.0.0").split(",")
 TWELVE_DATA_API_KEY = os.environ.get("TWELVE_DATA_API_KEY")

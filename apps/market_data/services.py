@@ -33,7 +33,7 @@ class CoinGeckoService:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"Error fetching top coins: {e}")
+            logger.error(f"Error fetching top coins: {e}")
             return []
 
     @staticmethod
@@ -53,7 +53,7 @@ class CoinGeckoService:
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            print(f"Error fetching live prices: {e}")
+            logger.error(f"Error fetching live prices: {e}")
             return None
 
 

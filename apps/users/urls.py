@@ -15,8 +15,6 @@ from .views import (
     GoogleLogin,
     RegisterView,
     UserProfileView,
-    github_callback_test,
-    google_callback_test,
 )
 
 urlpatterns = [
@@ -26,9 +24,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="rest_logout"),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("google/", GoogleLogin.as_view(), name="google_login"),
-    path("google/callback/", google_callback_test, name="google_callback"),
     path("github/", GitHubLogin.as_view(), name="github_login"),
-    path("github/callback/", github_callback_test, name="github_callback"),
     path("password/reset/", PasswordResetView.as_view(), name="rest_password_reset"),
     path(
         "password/reset/confirm/<uidb64>/<token>/",

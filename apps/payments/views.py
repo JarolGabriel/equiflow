@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 import stripe
 from django.conf import settings
 from django.http import HttpResponse
@@ -84,8 +88,10 @@ class StripeWebhookView(APIView):
                 user.is_pro = True
                 user.save()
 
-                print(f"Payment Succeeded: {stripe_id} - User {user.email} is now PRO")
+                logger.info(
+                    f"Payment Succeeded: {stripe_id} - User {user.email} is now PRO"
+                )
             except StripePayment.DoesNotExist:
-                print(f" Payment {stripe_id} not found in DB")
+                logger.warning(f" Payment {stripe_id} not found in DB")
 
         return HttpResponse(status=200)

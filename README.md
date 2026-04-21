@@ -1,5 +1,13 @@
 # 🚀 EquiFlow API | Advanced Fintech Portfolio Manager
 
+![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.0-green?logo=django&logoColor=white)
+![DRF](https://img.shields.io/badge/DRF-3.15-orange?logo=django&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7.0-red?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue?logo=docker&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Production-brightgreen)
+
 EquiFlow is a high-performance financial management API designed to track multi-asset investments (Stocks, Crypto, Forex) in real-time. It features professional-grade architecture including asynchronous tasks, weighted average cost calculations, and automated financial reporting.
 
 ---
@@ -44,6 +52,85 @@ Using **Celery Beat**, the system performs background polling of financial data 
 ---
 
 ## 📂 Project Structure
+
+
+---
+
+## 🛠️ Local Development Setup
+
+### Prerequisites
+- **Python 3.11+**
+- **Docker & Docker Compose** (recommended)
+- **PostgreSQL 16** (if not using Docker)
+- **Redis** (if not using Docker)
+
+### Installation Steps
+
+1. **Clone the repository**
+```bash
+   git clone https://github.com/JarolGabriel/equiflow.git
+   cd equiflow
+```
+
+2. **Create virtual environment** (optional if using Docker)
+```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # venv\Scripts\activate   # Windows
+```
+
+3. **Install dependencies**
+```bash
+   pip install -r requirements.txt
+```
+
+4. **Set up environment variables**
+```bash
+   cp .env.example .env
+   # Edit .env and add your API keys:
+   # - SECRET_KEY (generate with: python -c "import secrets; print(secrets.token_hex(50))")
+   # - Database credentials
+   # - STRIPE_SECRET_KEY, ALPHA_VANTAGE_API_KEY, etc.
+```
+
+5. **Run with Docker Compose** (recommended)
+```bash
+   docker-compose up --build
+```
+
+6. **Run migrations**
+```bash
+   # If using Docker:
+   docker exec -it equiflow_web python manage.py migrate
+
+   # If running locally:
+   python manage.py migrate
+```
+
+7. **Create superuser** (optional)
+```bash
+   # If using Docker:
+   docker exec -it equiflow_web python manage.py createsuperuser
+
+   # If running locally:
+   python manage.py createsuperuser
+```
+
+8. **Access the application**
+   - **Swagger UI:** http://localhost:8000/api/docs/
+   - **ReDoc:** http://localhost:8000/api/redoc/
+   - **Admin Panel:** http://localhost:8000/admin/
+
+### Running Tests
+```bash
+# If using Docker:
+docker exec -it equiflow_web python -m pytest
+
+# If running locally:
+python -m pytest
+```
+
+---
 
  
     ├── apps/
