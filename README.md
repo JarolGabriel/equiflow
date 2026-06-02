@@ -18,7 +18,7 @@ cost calculations, and automated financial reporting.
 ## 🔗 Quick Links
 
 - **🌐 Live Demo:**
-  [View Live Site](https://equiflow-web.onrender.com/api/redoc/)
+  [View Live Site](https://equiflow-api-fufmc2gsgherd0d4.westus3-01.azurewebsites.net/api/docs/)
 - **📖 API Documentation:**
   [Swagger UI Docs](https://equiflow-api-fufmc2gsgherd0d4.westus3-01.azurewebsites.net/api/docs/)
 - **📁 Repository:** [GitHub Repo](https://github.com/JarolGabriel/equiflow)
