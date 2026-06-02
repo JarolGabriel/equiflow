@@ -233,11 +233,28 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
+# if not DEBUG:
+#     RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+#     if RENDER_EXTERNAL_HOSTNAME:
+#         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+#         CSRF_TRUSTED_ORIGINS = [f"https://{RENDER_EXTERNAL_HOSTNAME}"]
+#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+#     SECURE_SSL_REDIRECT = True
+
+CSRF_TRUSTED_ORIGINS = []
 if not DEBUG:
-    RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-    if RENDER_EXTERNAL_HOSTNAME:
-        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-        CSRF_TRUSTED_ORIGINS = [f"https://{RENDER_EXTERNAL_HOSTNAME}"]
+    # Capturamos el hostname de Azure (y mantenemos el de Render por si acaso)
+    AZURE_HOSTNAME = os.environ.get("WEBSITE_HOSTNAME")
+    RENDER_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
+    if AZURE_HOSTNAME:
+        ALLOWED_HOSTS.append(AZURE_HOSTNAME)
+        CSRF_TRUSTED_ORIGINS.append(f"https://{AZURE_HOSTNAME}")
+
+    if RENDER_HOSTNAME:
+        ALLOWED_HOSTS.append(RENDER_HOSTNAME)
+        CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOSTNAME}")
+
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
 

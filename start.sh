@@ -13,4 +13,5 @@ celery -A core worker --loglevel=info --concurrency=1 &
 
 # 3. Start the Web Server
 echo "Starting Daphne on port $PORT..."
-exec daphne -b 0.0.0.0 -p $PORT core.asgi:application
+# exec daphne -b 0.0.0.0 -p $PORT core.asgi:application
+exec daphne -b 0.0.0.0 -p ${PORT:-8000} core.asgi:application
