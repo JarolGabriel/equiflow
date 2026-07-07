@@ -1,5 +1,3 @@
-import redis
-from django.conf import settings
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
@@ -9,8 +7,7 @@ from rest_framework.views import APIView
 
 from apps.investments.models import Asset, FavoriteAsset
 from apps.investments.serializers import AssetSerializer
-
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+from core.redis_utils import build_price_map, safe_get
 
 
 class GlobalMarketStatusAPIView(APIView):
@@ -35,35 +32,25 @@ class GlobalMarketStatusAPIView(APIView):
         },
     )
     def get(self, request, *args, **kwargs):
-        try:
-            price_keys = redis_client.keys("price_*")
-            market_data = {}
+        # Drive the symbol list from the DB instead of Redis KEYS (O(N), blocks
+        # Redis) and fetch every price/change in a single MGET round trip.
+        symbols = list(Asset.objects.values_list("symbol", flat=True))
+        price_map = build_price_map(symbols)
 
-            for key in price_keys:
-                symbol = key.replace("price_", "")
-                price = redis_client.get(key)
-                change = redis_client.get(f"change_{symbol}")
+        market_data = {
+            symbol: {"price": entry["price"], "change": entry["change"]}
+            for symbol, entry in price_map.items()
+        }
+        last_update = safe_get("market_last_updated")
 
-                market_data[symbol] = {
-                    "price": float(price) if price else None,
-                    "change": float(change) if change is not None else None,
-                }
-
-            last_update = redis_client.get("market_last_updated")
-
-            return Response(
-                {
-                    "status": "success",
-                    "last_update": last_update,
-                    "data": market_data,
-                },
-                status=status.HTTP_200_OK,
-            )
-        except Exception as e:
-            return Response(
-                {"error": f"Failed to fetch market data: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        return Response(
+            {
+                "status": "success",
+                "last_update": last_update,
+                "data": market_data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class AssetViewSet(viewsets.ReadOnlyModelViewSet):
