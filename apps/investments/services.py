@@ -1,20 +1,17 @@
 import logging
-from decimal import Decimal
-
-from django.conf import settings
+from decimal import Decimal, InvalidOperation
 
 logger = logging.getLogger(__name__)
 
 import io
 from datetime import datetime
 
-import redis
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-redis_client = redis.from_url(settings.REDIS_URL)
+from core.redis_utils import safe_get
 
 
 class PriceService:
@@ -33,15 +30,12 @@ class PriceService:
         Returns:
             Decimal: The current price if found in cache, None otherwise.
         """
-        try:
-            price = redis_client.get(f"price_{asset_symbol.upper()}")
-            if price:
+        price = safe_get(f"price_{asset_symbol.upper()}")
+        if price:
+            try:
                 return Decimal(price)
-        except Exception as e:
-            logger.error(
-                "Failed to fetch price from Redis for symbol %s: %s", asset_symbol, e
-            )
-
+            except (InvalidOperation, TypeError, ValueError):
+                logger.warning("Invalid cached price for %s: %r", asset_symbol, price)
         return None
 
 

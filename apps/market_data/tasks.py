@@ -1,18 +1,17 @@
 import logging
 
-import redis
 from celery import shared_task
-from django.conf import settings
 from django.utils import timezone
 
 from apps.alerts.services import AlertService
 from apps.investments.models import Asset, AssetPriceHistory
+from core.redis_utils import get_redis_client
 
 from .services import CoinGeckoService, ForexService, StockService
 
 logger = logging.getLogger(__name__)
 
-redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+redis_client = get_redis_client()
 
 
 @shared_task

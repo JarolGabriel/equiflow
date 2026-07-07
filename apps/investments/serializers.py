@@ -1,6 +1,6 @@
-import redis
-from django.conf import settings
 from rest_framework import serializers
+
+from core.redis_utils import build_price_map, get_change, get_price
 
 from .models import (
     Asset,
@@ -11,7 +11,27 @@ from .models import (
     Transaction,
 )
 
-redis_client = redis.from_url(settings.REDIS_URL)
+
+def _merge_price_map(context, symbols):
+    """Ensure ``context['price_map']`` covers ``symbols`` using a single batch
+    call for the symbols that are not already cached in the context."""
+    existing = context.get("price_map")
+    if existing is None:
+        existing = {}
+    missing = [s for s in symbols if s not in existing]
+    if missing:
+        existing = {**existing, **build_price_map(missing)}
+    context["price_map"] = existing
+    return existing
+
+
+class AssetListSerializer(serializers.ListSerializer):
+    """Batches all Redis lookups for a list of assets into one MGET."""
+
+    def to_representation(self, data):
+        iterable = list(data.all()) if hasattr(data, "all") else list(data)
+        _merge_price_map(self.child.context, [obj.symbol for obj in iterable])
+        return [self.child.to_representation(item) for item in iterable]
 
 
 class AssetSerializer(serializers.ModelSerializer):
@@ -26,41 +46,30 @@ class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
         fields = ["id", "symbol", "name", "asset_type", "exchange", "price", "change"]
+        list_serializer_class = AssetListSerializer
 
-    def __init__(self, *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-        self._market_data_cache = {}
-
-    def _fetch_all_prices(self, symbols):
-        """
-        Fetches all prices and changes in a single Redis batch request.
-        """
-        price_keys = [f"price_{s.upper()}" for s in symbols]
-        change_keys = [f"change_{s.upper()}" for s in symbols]
-
-        # MGET returns a list of values in one single network trip
-        values = redis_client.mget(price_keys + change_keys)
-
-        # Split results back into prices and changes
-        mid = len(symbols)
-        prices = values[:mid]
-        changes = values[mid:]
-
-        return {
-            symbol: {"price": float(p) if p else None, "change": float(c) if c else 0.0}
-            for symbol, p, c in zip(symbols, prices, changes)
-        }
+    def _entry(self, symbol):
+        price_map = self.context.get("price_map")
+        if price_map is not None and symbol in price_map:
+            return price_map[symbol]
+        return None
 
     def get_price(self, obj):
-
-        price = redis_client.get(f"price_{obj.symbol}")
-        return float(price) if price else None
+        entry = self._entry(obj.symbol)
+        return entry["price"] if entry is not None else get_price(obj.symbol)
 
     def get_change(self, obj):
+        entry = self._entry(obj.symbol)
+        return entry["change"] if entry is not None else get_change(obj.symbol)
 
-        change_val = redis_client.get(f"change_{obj.symbol}")
-        return float(change_val) if change_val else 0.0
+
+class PortfolioAssetListSerializer(serializers.ListSerializer):
+    """Batches all Redis lookups for a list of portfolio holdings into one MGET."""
+
+    def to_representation(self, data):
+        iterable = list(data.all()) if hasattr(data, "all") else list(data)
+        _merge_price_map(self.child.context, [pa.asset.symbol for pa in iterable])
+        return [self.child.to_representation(item) for item in iterable]
 
 
 class PortfolioAssetSerializer(serializers.ModelSerializer):
@@ -86,6 +95,7 @@ class PortfolioAssetSerializer(serializers.ModelSerializer):
             "profit_loss",
             "last_updated",
         ]
+        list_serializer_class = PortfolioAssetListSerializer
 
     def validate_quantity(self, value):
 
@@ -101,17 +111,22 @@ class PortfolioAssetSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def get_current_balance(self, obj):
+    def _price(self, symbol):
+        price_map = self.context.get("price_map")
+        if price_map is not None and symbol in price_map:
+            return price_map[symbol]["price"]
+        return get_price(symbol)
 
-        price = redis_client.get(f"price_{obj.asset.symbol}")
-        if price:
-            return float(obj.quantity) * float(price)
+    def get_current_balance(self, obj):
+        price = self._price(obj.asset.symbol)
+        if price is not None:
+            return float(obj.quantity) * price
         return float(obj.quantity) * float(obj.average_purchase_price)
 
     def get_profit_loss(self, obj):
-        price = redis_client.get(f"price_{obj.asset.symbol}")
-        if price:
-            current_val = float(obj.quantity) * float(price)
+        price = self._price(obj.asset.symbol)
+        if price is not None:
+            current_val = float(obj.quantity) * price
             purchase_val = float(obj.quantity) * float(obj.average_purchase_price)
             return current_val - purchase_val
         return 0.0
@@ -171,23 +186,36 @@ class PortfolioSerializer(serializers.ModelSerializer):
             )
         return portfolio
 
-    def get_total_balance(self, obj):
+    def to_representation(self, instance):
+        # Prefetch every price this portfolio needs in a single Redis round trip
+        # so the nested serializers and the totals below reuse the same map.
+        _merge_price_map(
+            self.context, [pa.asset.symbol for pa in instance.assets.all()]
+        )
+        return super().to_representation(instance)
 
-        total = 0
+    def _price(self, symbol):
+        price_map = self.context.get("price_map")
+        if price_map is not None and symbol in price_map:
+            return price_map[symbol]["price"]
+        return get_price(symbol)
+
+    def get_total_balance(self, obj):
+        total = 0.0
         for asset in obj.assets.all():
-            price = redis_client.get(f"price_{asset.asset.symbol}")
+            price = self._price(asset.asset.symbol)
             current_price = (
-                float(price) if price else float(asset.average_purchase_price)
+                price if price is not None else float(asset.average_purchase_price)
             )
             total += float(asset.quantity) * current_price
         return total
 
     def get_total_profit_loss(self, obj):
-        total_pl = 0
+        total_pl = 0.0
         for asset in obj.assets.all():
-            price = redis_client.get(f"price_{asset.asset.symbol}")
-            if price:
-                current_val = float(asset.quantity) * float(price)
+            price = self._price(asset.asset.symbol)
+            if price is not None:
+                current_val = float(asset.quantity) * price
                 purchase_val = float(asset.quantity) * float(
                     asset.average_purchase_price
                 )

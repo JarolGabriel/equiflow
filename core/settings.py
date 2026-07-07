@@ -66,6 +66,11 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
+# Short timeouts so a slow/unreachable Redis fails fast instead of hanging the
+# request thread (and eventually starving the whole worker pool).
+REDIS_SOCKET_TIMEOUT = float(os.getenv("REDIS_SOCKET_TIMEOUT", "3"))
+REDIS_SOCKET_CONNECT_TIMEOUT = float(os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "3"))
+
 
 if (
     not DEBUG
@@ -94,6 +99,7 @@ CHANNEL_LAYERS = {
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "core.middleware.RequestTimingMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -132,11 +138,20 @@ DATABASES = {
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
+    # Behind a transaction-mode pooler (e.g. Supabase pgbouncer on :6543),
+    # persistent connections can misbehave, so CONN_MAX_AGE is configurable
+    # (set it to 0 when using the pooler). connect_timeout prevents a hung
+    # request while establishing a new DB connection.
     DATABASES["default"] = dj_database_url.config(
         default=DATABASE_URL,
-        conn_max_age=600,
+        conn_max_age=int(os.getenv("DB_CONN_MAX_AGE", "600")),
         ssl_require=not DEBUG or "supabase" in DATABASE_URL,
     )
+    # connect_timeout is a libpq option; only valid for PostgreSQL backends.
+    if "postgresql" in DATABASES["default"].get("ENGINE", ""):
+        DATABASES["default"].setdefault("OPTIONS", {}).setdefault(
+            "connect_timeout", int(os.getenv("DB_CONNECT_TIMEOUT", "5"))
+        )
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": f"django.contrib.auth.password_validation.{v}"}
@@ -288,3 +303,30 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = f"EquiFlow <{EMAIL_HOST_USER}>"
+
+# --- Logging ---
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        # Per-request latency (see core.middleware.RequestTimingMiddleware).
+        "equiflow.request": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Redis degradation warnings (see core.redis_utils).
+        "equiflow.redis": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
